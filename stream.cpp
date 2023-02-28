@@ -1,6 +1,6 @@
 
-// ./stream -m ./models/ggml-base.en.bin -t 8 --step 500 --length 5000
-# include "whisper.h"
+// ./stream -m ./models/ggml-base.en.bin -t 8 --step 1300 --length 5000
+#include "include/whisper.h"
 
 #include <SDL.h>
 #include <SDL_audio.h>
@@ -14,7 +14,7 @@
 #include <fstream>
 #include <mutex>
 #include <curl/curl.h>
-#include "json.hpp"
+#include "include/json.hpp"
 #include <iostream>
 
 using json = nlohmann::json; 
@@ -418,13 +418,7 @@ bool vad_simple(std::vector<float> & pcmf32, int sample_rate, int last_ms, float
 }
 
 // N: http part begin
-std::string API(const std::string& name){
-  char* ApiKey = getenv(name.c_str());
-  if (ApiKey == NULL) {
-	return std::string("YOUR_API_KEY");
-  }
-  return ApiKey;
-}
+
 
 size_t write_to_string(void *ptr, size_t size, size_t nmemb, void *stream) {
     size_t total_size = size * nmemb;
@@ -433,23 +427,29 @@ size_t write_to_string(void *ptr, size_t size, size_t nmemb, void *stream) {
     return total_size;
 }
 
-void httpPost(std::string &question, std::string conversation_id=" ", std::string parent_id=" "){
-    std::string filename = "question.json"; 
+std:: string getKey(){
+    std::string filename = "config.json"; 
+    std::ifstream in(filename, std::ios::in);
+    if (!in.is_open()){
+        std::cout << "Error opening file\n";
+        return NULL;
+    }
+    json root;
+    root = json::parse(in);
+    in.close();
+    if(root.at("Authorization")== "Add your key"){
+        std::cout << "Please add key to config.json.";
+        exit(0);
+    }
+    else{
+        return root.at("Authorization");
+    }
+}
 
-    // std::vector<std::string> header_string = { 
-    //     "Accept: text/event-stream",
-	// 	"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJlMDk3MzgxNUB1Lm51cy5lZHUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZ2VvaXBfY291bnRyeSI6IlNHIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci1PSHFLWmZ3ekVlN3VxTjJFM1pVbWhhTmMifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6ImF1dGgwfDYzZWQ4YzIzNmU5OTQ2YjhhZDBlZjQ5MyIsImF1ZCI6WyJodHRwczovL2FwaS5vcGVuYWkuY29tL3YxIiwiaHR0cHM6Ly9vcGVuYWkub3BlbmFpLmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzY1MTI0NjMsImV4cCI6MTY3NzcyMjA2MywiYXpwIjoiVGRKSWNiZTE2V29USHROOTVueXl3aDVFNHlPbzZJdEciLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIG1vZGVsLnJlYWQgbW9kZWwucmVxdWVzdCBvcmdhbml6YXRpb24ucmVhZCBvZmZsaW5lX2FjY2VzcyJ9.pw_1ZlsYKUaOdP2R6KFg8yf5FcQ_In2M7PIuo98I15Fcj16x0z2XVNww-FYWuOa9RIXZUZGO4BiZ0Z_e6p_TUxiW1Y_RMWjpG8TyVBGxgnIe4JZT8mfF3o3_7V0MNPlnyJdOJ3hd7DWyw2N4hnFWdTX01T2NlxOHtXZsspPxSS_qjUct3IfLtyN6kyfSD7r7rnRwJuo0v6zsTlOZlnY-z1jSt5xxnkMiN0d-ZxDUcLzyQCpixAqoq13eYLGe5_7HPpRkz-8XU_-YSDuI_CaqauKU3JH5YFnnnIDTQo2oFHeage31VbpERAv0UPA7pVehBHzq2igshpYESW-Dey4Oyg",
-    //     "Content-Type: application/json",
-    //     "X-Openai-Assistant-App-Id: ",
-    //     "Connection: close",
-    //     "Accept-Language: en-US,en;q=0.9",
-    //     "Referer: https://chat.openai.com/chat"};
-
-// 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
-
-
+void httpPost(std::string &question, std::string &key,std::string conversation_id=" ", std::string parent_id=" "){
+    
     std::vector<std::string> header_string = { 
-        "Authorization: Bearer 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",
+        "Authorization: Bearer "+key,
 		"Content-Type: application/json",
         "max_tokens: 256"
 	};
@@ -457,34 +457,6 @@ void httpPost(std::string &question, std::string conversation_id=" ", std::strin
     CURL *curl = curl_easy_init();
     CURLcode res;
     FILE * fp;
-
-
-    if((fp = std::fopen(filename.c_str(),"w"))==NULL){
-        return;
-    }
-
-    //prepare request_body
-    // UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-    // UUIDv4::UUID uuid = uuidGenerator.getUUID();
-    // uuid_t uuid1;
-    // uuid_generate(uuid1);
-    // char buff[128];
-    // std::string uid;
-    // uuid_unparse(uuid1,buff);
-    // uid.append(buff);
-    
-
-    // json root;
-    // root["action"] = "next";
-    // root["messages"]["id"] =  uid;
-    // root["role"] = "user";
-    // // root["messages"]["content"]["content_type"]="text";
-    // // root["messages"]["content"]["parts"]=question;
-    // root["prompt"] = question;
-    // root["conversation_id"] = conversation_id;
-    // root["parent_message_id"] = parent_id;
-    // root["model"] = "text-davinci-002-render-sha";
-
 
     if(curl){
         curl_easy_setopt(curl, CURLOPT_URL, "https://api.openai.com/v1/engines/text-davinci-003/completions"); 
@@ -513,6 +485,8 @@ void httpPost(std::string &question, std::string conversation_id=" ", std::strin
         std::cout << "Sending request... "<<std::endl<<std::endl;
         res = curl_easy_perform(curl);
         json response_json = json::parse(response);
+
+        std::cout << "Response (for testing): " << response << std::endl;
         std::string answer = response_json["choices"][0]["text"];
 
         answer.erase(std::remove(answer.begin(), answer.end(), '\n'), answer.end());
@@ -764,17 +738,23 @@ int main(int argc, char ** argv) {
                     printf("\n");
                 }
 
-
+                std::string key = getKey();
                 const int n_segments = whisper_full_n_segments(ctx);
                 for (int i = 0; i < n_segments; ++i) {
                     const char * text = whisper_full_get_segment_text(ctx, i);
+
+                    // // Just for testing response by sending message directly without whisper.
+                    // std::string question_test = "What is your name?";
+                    // httpPost(question_test,key);
+                    // exit(0);
+                    //
 
                     if (params.no_timestamps) {
                         if(strstr(text,"Good")){
                             std::string question_test = question.end()[-1];
                             printf("This is your question: %s\n\n", question_test.c_str());
 
-                            httpPost(question_test);
+                            httpPost(question_test,key);
                             exit(0);
                         }
                         printf("%s", text);
