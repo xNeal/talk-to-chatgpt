@@ -70,7 +70,7 @@ CC_SDL=`sdl2-config --cflags --libs`
 stream: ./stream.cpp ggml.o whisper.o
 	$(CXX) $(CXXFLAGS) stream.cpp ./include/ggml.o ./include/whisper.o -o stream $(CC_SDL) $(LDFLAGS) -lcurl
 
-bench: examples/bench/bench.cpp ggml.o whisper.o
-	$(CXX) $(CXXFLAGS) examples/bench/bench.cpp ggml.o whisper.o -o bench $(LDFLAGS)
+bench: ./bench.cpp ggml.o whisper.o
+	$(CXX) $(CXXFLAGS) bench.cpp ./include/ggml.o ./include/whisper.o -o bench $(LDFLAGS)
 
 
