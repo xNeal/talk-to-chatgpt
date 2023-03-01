@@ -25,8 +25,5 @@
 - Run example `./stream -m ./models/ggml-base.en.bin -t 8 --step 1300 --length 5000`
 
     If your encode time is 750 ms, then you should use 2 times in parameter `--step`, which is 1300
-=======
-- run `./models/download-ggml-model.sh base.en`
-- make it `make stream`
-- run `./stream -m ./models/ggml-base.en.bin -t 8 --step 1300 --length 5000 `
+
 
