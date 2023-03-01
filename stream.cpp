@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include <mutex>
+#include <chrono>
 #include <curl/curl.h>
 #include "include/json.hpp"
 #include <iostream>
@@ -417,7 +418,7 @@ bool vad_simple(std::vector<float> & pcmf32, int sample_rate, int last_ms, float
     return true;
 }
 
-// N: http part begin
+// Neal: http part begin
 
 
 size_t write_to_string(void *ptr, size_t size, size_t nmemb, void *stream) {
@@ -456,7 +457,6 @@ void httpPost(std::string &question, std::string &key,std::string conversation_i
 
     CURL *curl = curl_easy_init();
     CURLcode res;
-    FILE * fp;
 
     if(curl){
         curl_easy_setopt(curl, CURLOPT_URL, "https://api.openai.com/v1/engines/text-davinci-003/completions"); 
@@ -469,13 +469,8 @@ void httpPost(std::string &question, std::string &key,std::string conversation_i
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POST, 1);
 
-        // http_request_body
-        // std::string request_body = "{\"max_tokens\":1000,\"prompt\": [\"what is your name?\"]}";
-
         std::string request_body =  "{\"prompt\": [\"" + question + "\"], \"temperature\": 0, \"max_tokens\": 150}";
 
-        // std::cout << " Yours: " << request_body.c_str();
-        // std::cout << std:: endl << std::endl;
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_body.c_str());
         // write
         std::string response;
@@ -486,16 +481,21 @@ void httpPost(std::string &question, std::string &key,std::string conversation_i
         res = curl_easy_perform(curl);
         json response_json = json::parse(response);
 
-        std::cout << "Response (for testing): " << response << std::endl;
-        std::string answer = response_json["choices"][0]["text"];
-
-        answer.erase(std::remove(answer.begin(), answer.end(), '\n'), answer.end());
-        // Print the answer
-        std::cout <<"Chatgpt: " << answer << std::endl;
+        // std::cout << "Response (for testing): " << response << std::endl;
+        if(response_json["choices"][0]["text"].is_string()){
+            std::string answer = response_json["choices"][0]["text"];
+            answer.erase(std::remove(answer.begin(), answer.end(), '\n'), answer.end());
+            std::cout <<"Chatgpt: " << answer << std::endl;
+        }
+        else{
+            std::cout << "Something wrong happened. The response is: "<< response << std::endl;
+            exit(0);
+        }
+        
         curl_easy_cleanup(curl);
-        exit(0);
+        return;
     }
-    fclose(fp);
+
 }
 
 // http part stop
@@ -755,7 +755,7 @@ int main(int argc, char ** argv) {
                             printf("This is your question: %s\n\n", question_test.c_str());
 
                             httpPost(question_test,key);
-                            exit(0);
+                            std::this_thread::sleep_for (std::chrono::seconds(1));
                         }
                         printf("%s", text);
                         question.push_back(text);
