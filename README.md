@@ -18,7 +18,7 @@
 
 - Build encode tester `make bench`
 
-- Get your encode time in “whisper_print_timings” part : `./bench -m ./models/ggml-base.en.bin`
+- Run `./bench -m ./models/ggml-base.en.bin` and get your encode time in “whisper_print_timings” part 
 
 - Build example  `make stream`
 
