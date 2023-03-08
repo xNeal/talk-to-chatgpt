@@ -204,9 +204,11 @@ bool audio_async::init(int capture_id, int sample_rate) {
 
     if (capture_id >= 0) {
         fprintf(stderr, "%s: attempt to open capture device %d : '%s' ...\n", __func__, capture_id, SDL_GetAudioDeviceName(capture_id, SDL_TRUE));
+        fprintf(stderr,"\n");
         m_dev_id_in = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(capture_id, SDL_TRUE), SDL_TRUE, &capture_spec_requested, &capture_spec_obtained, 0);
     } else {
         fprintf(stderr, "%s: attempt to open default capture device ...\n", __func__);
+        fprintf(stderr,"\n");
         m_dev_id_in = SDL_OpenAudioDevice(nullptr, SDL_TRUE, &capture_spec_requested, &capture_spec_obtained, 0);
     }
 
@@ -216,13 +218,13 @@ bool audio_async::init(int capture_id, int sample_rate) {
 
         return false;
     } else {
-        fprintf(stderr, "%s: obtained spec for input device (SDL Id = %d):\n", __func__, m_dev_id_in);
-        fprintf(stderr, "%s:     - sample rate:       %d\n",                   __func__, capture_spec_obtained.freq);
-        fprintf(stderr, "%s:     - format:            %d (required: %d)\n",    __func__, capture_spec_obtained.format,
-                capture_spec_requested.format);
-        fprintf(stderr, "%s:     - channels:          %d (required: %d)\n",    __func__, capture_spec_obtained.channels,
-                capture_spec_requested.channels);
-        fprintf(stderr, "%s:     - samples per frame: %d\n",                   __func__, capture_spec_obtained.samples);
+        // fprintf(stderr, "%s: obtained spec for input device (SDL Id = %d):\n", __func__, m_dev_id_in);
+        // fprintf(stderr, "%s:     - sample rate:       %d\n",                   __func__, capture_spec_obtained.freq);
+        // fprintf(stderr, "%s:     - format:            %d (required: %d)\n",    __func__, capture_spec_obtained.format,
+        //         capture_spec_requested.format);
+        // fprintf(stderr, "%s:     - channels:          %d (required: %d)\n",    __func__, capture_spec_obtained.channels,
+        //         capture_spec_requested.channels);
+        // fprintf(stderr, "%s:     - samples per frame: %d\n",                   __func__, capture_spec_obtained.samples);
     }
 
     m_sample_rate = capture_spec_obtained.freq;
@@ -552,34 +554,34 @@ int main(int argc, char ** argv) {
     std::vector<whisper_token> prompt_tokens;
 
 // print some info about the processing
-    {
-        fprintf(stderr, "\n");
-        if (!whisper_is_multilingual(ctx)) {
-            if (params.language != "en" || params.translate) {
-                params.language = "en";
-                params.translate = false;
-                fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
-            }
-        }
-        fprintf(stderr, "%s: processing %d samples (step = %.1f sec / len = %.1f sec / keep = %.1f sec), %d threads, lang = %s, task = %s, timestamps = %d ...\n",
-                __func__,
-                n_samples_step,
-                float(n_samples_step)/WHISPER_SAMPLE_RATE,
-                float(n_samples_len )/WHISPER_SAMPLE_RATE,
-                float(n_samples_keep)/WHISPER_SAMPLE_RATE,
-                params.n_threads,
-                params.language.c_str(),
-                params.translate ? "translate" : "transcribe",
-                params.no_timestamps ? 0 : 1);
+    // {
+    //     fprintf(stderr, "\n");
+    //     if (!whisper_is_multilingual(ctx)) {
+    //         if (params.language != "en" || params.translate) {
+    //             params.language = "en";
+    //             params.translate = false;
+    //             fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
+    //         }
+    //     }
+    //     fprintf(stderr, "%s: processing %d samples (step = %.1f sec / len = %.1f sec / keep = %.1f sec), %d threads, lang = %s, task = %s, timestamps = %d ...\n",
+    //             __func__,
+    //             n_samples_step,
+    //             float(n_samples_step)/WHISPER_SAMPLE_RATE,
+    //             float(n_samples_len )/WHISPER_SAMPLE_RATE,
+    //             float(n_samples_keep)/WHISPER_SAMPLE_RATE,
+    //             params.n_threads,
+    //             params.language.c_str(),
+    //             params.translate ? "translate" : "transcribe",
+    //             params.no_timestamps ? 0 : 1);
 
-        if (!use_vad) {
-            fprintf(stderr, "%s: n_new_line = %d, no_context = %d\n", __func__, n_new_line, params.no_context);
-        } else {
-            fprintf(stderr, "%s: using VAD, will transcribe on speech activity\n", __func__);
-        }
+    //     if (!use_vad) {
+    //         fprintf(stderr, "%s: n_new_line = %d, no_context = %d\n", __func__, n_new_line, params.no_context);
+    //     } else {
+    //         fprintf(stderr, "%s: using VAD, will transcribe on speech activity\n", __func__);
+    //     }
 
-        fprintf(stderr, "\n");
-    }
+    //     fprintf(stderr, "\n");
+    // }
 
     int n_iter = 0;
 
@@ -755,7 +757,7 @@ int main(int argc, char ** argv) {
                             printf("This is your question: %s\n\n", question_test.c_str());
 
                             httpPost(question_test,key);
-                            std::this_thread::sleep_for (std::chrono::seconds(1));
+                            std::this_thread::sleep_for (std::chrono::seconds(2));
                         }
                         printf("%s", text);
                         question.push_back(text);
