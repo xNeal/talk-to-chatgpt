@@ -58,7 +58,7 @@ whisper.o: ./include/whisper.cpp ./include/whisper.h
 
 
 clean:
-	rm -f *.o main stream command talk bench libwhisper.a libwhisper.so
+	rm -f *.o main stream command talk test libwhisper.a libwhisper.so
 
 #
 # Examples
@@ -70,7 +70,7 @@ CC_SDL=`sdl2-config --cflags --libs`
 stream: ./stream.cpp ggml.o whisper.o
 	$(CXX) $(CXXFLAGS) stream.cpp ./include/ggml.o ./include/whisper.o -o stream $(CC_SDL) $(LDFLAGS) -lcurl
 
-bench: ./bench.cpp ggml.o whisper.o
-	$(CXX) $(CXXFLAGS) bench.cpp ./include/ggml.o ./include/whisper.o -o bench $(LDFLAGS)
+test: ./test.cpp ggml.o whisper.o
+	$(CXX) $(CXXFLAGS) test.cpp ./include/ggml.o ./include/whisper.o -o test $(LDFLAGS)
 
 
