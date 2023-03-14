@@ -1,5 +1,7 @@
 # talk-to-chatgpt
 
+Currently just for **Mac**.
+
 ## Quick start
 
 - make sure you have the `sdl2` package, in Mac use `brew install sdl2`
